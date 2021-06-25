@@ -11,6 +11,8 @@ def eventJoystick(joystick):
 if __name__ == '__main__':
     drone = Drone()
     drone.open('COM7')
+    drone.setEventHandler(DataType.Button, eventButton)
+    drone.sendPing(DeviceType.Controller)
     drone.setEventHandler(DataType.Joystick, eventJoystick)
     drone.sendPing(DeviceType.Controller)
     for i in range(10,0,-1):
