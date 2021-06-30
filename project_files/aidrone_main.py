@@ -35,15 +35,34 @@ def eventMotion(motion):
     print("Gyro     :   {0:5},  {1:5},  {2:5}",format(motion.gyroRoll,motion.gyroPitch,motion.gyroYaw))
     print("Angle    :   {0:5},  {1:5},  {2:5}",format(motion.angleRoll,motion.anglePitch,motion.angleYaw))
 
+def randomLight():
+    for i in range(0,10,1):
+        r = int(random.randint(0, 255))
+        g = int(random.randint(0, 255))
+        b = int(random.randint(0, 255))
 
-if __name__ == '__main__':
-    searchPort()
-    for i in range(5,0,-1):
-        print(i)
-        sleep(1)
+        dataArray = drone.sendLightDefaultColor(LightModeDrone.BodyDimming, 1, r, g, b)
 
-    drone = Drone()
-    drone.open('COM7')                                      # 컨트롤러와 연결된 포트 번호
+        sleep(2)
+
+def testHovering():
+    print("TakeOff")
+    drone.sendTakeOff()
+    sleep(0.01)
+
+    print("Hovering")
+    drone.sendControlWhile(0,0,0,0,7000)
+
+    print("Go Stop")
+    drone.sendControlWhile(0,0,0,0,1000)
+
+    print("Landing")
+    drone.sendLanding()
+    sleep(0.01)
+    drone.sendLanding()
+    sleep(0.01)
+
+def readEvent():
     drone.setEventHandler(DataType.Button, eventButton)     # 버튼 이벤트와 연결할 함수를 지정
     drone.setEventHandler(DataType.Joystick, joystickGoto) # 조이스틱 이벤트와 연결할 함수를 지정
     drone.setEventHandler(DataType.Motion, eventMotion)
@@ -55,4 +74,49 @@ if __name__ == '__main__':
         if KeyboardInterrupt:
             break;
 
+def eventTrim(trim):
+    print("{0}, {1}, {2}, {3}".format(trim.roll,trim.pitch,trim.yaw,trim.throttle))
+
+def setTrim():
+    drone.setEventHandler(DataType.Trim,eventTrim)
+
+    drone.sendTrim(0,0,0,0)
+    sleep(0.01)
+
+    drone.sendRequest(DeviceType.Drone,DataType.Trim)
+    sleep(0.01)
+
+def testMove():
+    print("TakeOff")
+    drone.sendTakeOff()
+    sleep(0.01)
+
+    print("GoStart")
+    drone.sendControlWhile(0,0,0,20,6000)
+
+    drone.sendControlWhile(0,50,-100,5,5000)
+
+
+    print("GoStop")
+    drone.sendControlWhile(0,0,0,0,1000)
+
+
+    print("Landing")
+    drone.sendLanding()
+    sleep(0.01)
+    drone.sendLanding()
+    sleep(0.01)
+
+if __name__ == '__main__':
+    searchPort()
+    for i in range(5,0,-1):
+        print(i)
+        sleep(1)
+
+    drone = Drone()
+    drone.open('COM7')                                      # 컨트롤러와 연결된 포트 번호
+
+    setTrim()
+    testMove()
+    
     drone.close()
