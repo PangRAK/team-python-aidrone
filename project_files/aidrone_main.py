@@ -16,35 +16,7 @@ if __name__ == '__main__':
     drone.open('COM7')  # 컨트롤러와 연결된 포트 번호
 
     print("start")
-    
-    store = set()
- 
-    def handleKeyPress( key ):
-        store.add( key )
-    
-        print( 'Press: {}'.format( store ) )
-    
-    def handleKeyRelease( key ):
-        print( 'Released: {}'.format( key ) )
-    
-        if store.index('w'):
-            print("w")
-
-        if store.index('a'):
-            print("a")
-
-        if key in store:
-            store.remove( key )
-        # 종료
-        if key == Key.esc:
-            return False
-        
-        
-        # drone.sendControlWhile()
-    
-    with Listener(on_press=handleKeyPress, on_release=handleKeyRelease) as listener:
-        listener.join()
-
+    testMove(drone)
     print("stop")
 
     drone.close()
