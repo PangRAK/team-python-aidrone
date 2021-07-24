@@ -4,7 +4,9 @@ from e_drone.protocol import *
 from pynput import keyboard                  # 드론 라이브러리
 from serial.tools.list_ports import comports    # 포트 번호 가져올 수 있는 라이브러리
 from aidrone_function import *                  # 내가 지정한 함수들
-from turtle import *
+import turtle as t
+
+
 
 if __name__ == '__main__':
     searchPort()
@@ -12,11 +14,18 @@ if __name__ == '__main__':
         print(i)
         sleep(1)
 
+    mturtle = t.Turtle()
     drone = Drone()
     drone.open('COM7')  # 컨트롤러와 연결된 포트 번호
 
+    setTrim(drone)
+    setAltitudeEvent(drone)
     print("start")
-    testMove(drone)
+    takeOff(drone)      # 이륙
+
+    GO_1(drone, mturtle)
+
+    landing(drone)      # 착륙
     print("stop")
 
     drone.close()
