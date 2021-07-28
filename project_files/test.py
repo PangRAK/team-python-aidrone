@@ -5,6 +5,9 @@ from pynput import keyboard                  # 드론 라이브러리
 from serial.tools.list_ports import comports    # 포트 번호 가져올 수 있는 라이브러리
 from aidrone_function import *                  # 내가 지정한 함수들
 import turtle as t
+import cv2
+import numpy as np
+
 
 
 if __name__ == '__main__':

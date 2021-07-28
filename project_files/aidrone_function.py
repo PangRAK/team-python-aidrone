@@ -47,24 +47,20 @@ def randomLight(drone):         # 랜덤 LED 컨트롤 함수
 def takeOff(drone):             # 이륙 함수
     print("TakeOff")
     drone.sendTakeOff()
-    sleep(0.01)
+    sleep(0.1)
     drone.sendControlWhile(0,0,0,0,5000)
+    sleep(0.1)
 
 def landing(drone):             # 착륙 함수
     print("Landing")
     drone.sendLanding()
-    sleep(0.01)
+    sleep(0.1)
     drone.sendLanding()
-    sleep(0.01)
-
+    sleep(0.1)
 
 def testHovering(drone):        # 호버링 테스트 함수
     print("Hovering")
     drone.sendControlWhile(0,0,0,0,3000)
-
-def throttleUp(drone): 
-    print("Throttle Up")
-    drone.sendControlWhile(0,0,0,25,2000)
 
 def readEvent(drone):           # 버튼, 조이스틱 이벤트를 할당하는 함수
     drone.setEventHandler(DataType.Button, eventButton)     # 버튼 이벤트와 연결할 함수를 지정
@@ -85,15 +81,15 @@ def setTrim(drone):             # trim을 세팅하는 함수
     drone.setEventHandler(DataType.Trim,eventTrim)
 
     drone.sendTrim(0,0,0,0)
-    sleep(0.01)
+    sleep(0.1)
 
     drone.sendRequest(DeviceType.Drone,DataType.Trim)
-    sleep(0.01)
+    sleep(0.1)
 
 def testMove(drone):            # 실제 운행 테스트를 하기위한 함수
     print("TakeOff")
     drone.sendTakeOff()
-    sleep(0.01)
+    sleep(0.1)
 
     print("GoStart")
     drone.sendControlWhile(0,0,0,20,6000)
@@ -107,9 +103,9 @@ def testMove(drone):            # 실제 운행 테스트를 하기위한 함수
 
     print("Landing")
     drone.sendLanding()
-    sleep(0.01)
+    sleep(0.1)
     drone.sendLanding()
-    sleep(0.01)
+    sleep(0.1)
 
 def eventAltitude(altitude):
     # print("eventAltitude()")
@@ -137,26 +133,30 @@ def maintainAltitude(drone, goalHeight):
     while True:
         readAltitude(drone)
         print(currentHeight)
-        if goalHeight - 0.1 < currentHeight:
+        if goalHeight < currentHeight:
             break
         drone.sendControlWhile(0,0,0,20,10)
+    drone.sendControlWhile( 0, 0, 0, 0, 1)
 
     while True:
         readAltitude(drone)
         print(currentHeight)
-        if goalHeight + 0.1 > currentHeight:
+        if goalHeight > currentHeight:
             break
         drone.sendControlWhile(0,0,0,-20,10)
+    drone.sendControlWhile( 0, 0, 0, 0, 1)
+    sleep(0.1)
 
 def maintainAltitudeTime(drone, goalHeight, time):
     for i in range(0,int(time/10)):
         readAltitude(drone)
-        if goalHeight - 0.1 > currentHeight:
+        if goalHeight > currentHeight:
             drone.sendControlWhile(0,0,0,20,10)
-        elif goalHeight + 0.1 < currentHeight:
+        elif goalHeight < currentHeight:
             drone.sendControlWhile(0,0,0,-20,10)
         else:
             drone.sendControlWhile(0,0,0,0,10)
+    drone.sendControlWhile( 0, 0, 0, 0, 1)
 
 def testAltitude(drone):
     for i in range(0,10):
@@ -164,86 +164,52 @@ def testAltitude(drone):
         drone.sendRequest(DeviceType.Drone, DataType.Altitude)
         sleep(1)
 
-    #전진
+# 전진
 def straight(roll, pitch, yaw, throttle, time, drone, mturtle):
     print("Go")
     drone.sendControlWhile(roll, pitch, yaw, throttle, time)
     mturtle.forward(time/100)
 
-#사각형
+# 사각형
 def square(drone, mturtle):
     print("Sqaure")
     print('')
-    print('각도 전환')
-    drone.sendControlWhile(0, 0, -20, 0, 2500)
-    mturtle.right(abs(-20))
-    sleep(0.1)
-    #정지
-    drone.sendControlWhile(0,0,0,0,1000)
-    sleep(0.1)
-    print('사각형 전진')
-    drone.sendControlWhile(0, 30, 0, 0, 2500)
-    mturtle.forward(4000/100)
-    sleep(0.1)
+    for i in range(0,4):
+        print('각도 전환')
+        mturtle.right(abs(-20))
+        drone.sendControlPosition(0,0,0,0,-90,45)
+        sleep(3)
+        print('사각형 전진(1m)')
+        mturtle.forward(4000/100)
+        drone.sendControlPosition(1,0,0,0.5,0,0)
+        sleep(2.3)
     
-
-    print('각도 전환')
-    drone.sendControlWhile(0, 0, -20, 0, 2500)
-    mturtle.right(abs(-20))
-    sleep(0.1)
-    #정지
-    drone.sendControlWhile(0,0,0,0,1000)
-    sleep(0.1)
-    print('사각형 전진')
-    drone.sendControlWhile(0, 30, 0, 0, 2500)
-    mturtle.forward(4000/100)
-    sleep(0.1)
-
-    print('각도 전환')
-    drone.sendControlWhile(0, 0, -20, 0, 2500)
-    mturtle.right(abs(-20))
-    sleep(0.1)
-    #정지
-    drone.sendControlWhile(0,0,0,0,1000)
-    sleep(0.1)
-    print('사각형 전진')
-    drone.sendControlWhile(0, 30, 0, 0, 2500)
-    mturtle.forward(4000/100)
-    sleep(0.1)
-
-    print('각도 전환')
-    drone.sendControlWhile(0, 0, -20, 0, 2500)
-    mturtle.right(abs(-20))
-    sleep(0.1)
-    #정지
-    drone.sendControlWhile(0,0,0,0,1000)
-    sleep(0.1)
-    print('사각형 전진')
-    drone.sendControlWhile(0, 30, 0, 0, 2500)
-    mturtle.forward(4000/100)
-    sleep(0.1)
-
 #8자원
-def Circle8(drone,mturtle):
-    drone.sendControlWhile(50,0,-50,0,3000)
-    drone.sendControlWhile(0,0,0,0,1000)
-    drone.sendControlWhile(-50,0,50,0,3000)
-    drone.sendControlWhile(0,0,0,0,1000)
+def circle(drone,mturtle,flag):
+    if flag == True:
+        drone.sendControlPosition(3.14,0,0,0.785,-360,90)
+    else:
+        drone.sendControlPosition(3.14,0,0,0.785,360,90)
+    sleep(4.1)
+    drone.sendControlWhile(0,0,0,0, 5000)
+    sleep(0.1)
 
 #zigzag
 def zigzag(drone, mturtle):
     drone.sendControlWhile(0,0,-30,0,500)
-    drone.sendControlWhile( 0, 50,0,0,1500) 
-    drone.sendControlWhile(0,0,60,0,500) 
-    drone.sendControlWhile( 0, 50,0,0,1500) 
-    drone.sendControlWhile(0,0,-60,0,500) 
-    drone.sendControlWhile( 0, 50,0,0,1500)
-    drone.sendControlWhile(0,0,60,0,500) 
-    drone.sendControlWhile( 0, 50,0,0,1500)
+    sleep(0.1)
+    drone.sendControlWhile( 0, 20,0,0,1500) 
+    sleep(0.1)
+    drone.sendControlWhile(0,0,30,0,1000) 
+    sleep(0.1)
+    drone.sendControlWhile( 0, 20,0,0,1500) 
+    sleep(0.1)
+    drone.sendControlWhile(0,0,-30,0,1000) 
+    sleep(0.1)
+    drone.sendControlWhile( 0, 20,0,0,1500)
+    sleep(0.1)
     drone.sendControlWhile(0,0,30,0,500) 
-    
-
-
+    sleep(0.1)
 
 #기능 1 
 def GO_1( drone, mturtle):
@@ -251,12 +217,12 @@ def GO_1( drone, mturtle):
 
     #1.호버링 3초
     print("Hovering")
-    drone.sendControlWhile(0,0,0,0, 3000)
-    sleep(0.1)
+    sleep(3)
 
     #2. 전진 비행(80cm)
-    straight(0, 20, 0, 0, 2000, drone, mturtle)
-    sleep(0.1)
+    #터틀
+    drone.sendControlPosition(0.8,0,0,0.4,0,0)
+    sleep(2.1)
 
 
     #3. 고도상승(높이 1.5cm)
@@ -265,63 +231,58 @@ def GO_1( drone, mturtle):
 
     #4. 정지비행(5sec)
     print("Hovering")
-    drone.sendControlWhile(0,0,0,0, 5000)
-    # maintainAltitudeTime(drone,1.5,100)
-    sleep(0.1)
+    sleep(5)
     
     #4. 사각형 패턴비행(90도 회전, 정지 1sec, 지름 1m 씩)
     square(drone, mturtle)
 
     #5. 정지비행(5sec)
     print("Hovering")
-    drone.sendControlWhile(0,0,0,0, 5000)
-    sleep(0.1)
+    sleep(5)
 
     #6. 원 패턴 비행(지름 1m)    
     print("Circle")
-    drone.sendControlWhile(30,0,-75,0,4000)
+    circle(drone,mturtle,True)
 
     #7. 정지비행(5sec)
     print("Hovering")
-    drone.sendControlWhile(0,0,0,0, 5000)
+    sleep(5)
 
     #8. 후진 비행(1m)
     print("Back")
-    drone.sendControlWhile(0,-20,0,0,2000)
+    #터틀
+    drone.sendControlPosition(-1,0,0,0.5,0,0)
+    sleep(2.1)
 
     #9. 고도 하강(1m, 50cm 남김)
     print("Down")
-    maintainAltitude(drone,0.5)
+    maintainAltitude(drone,1)
 
     #10. 정지 비행(5sec)
     print("Hovering")
-    drone.sendControlWhile(0,0,0,0, 5000)
+    sleep(5)
 
 def GO_2( drone, mturtle):
-    #0.이륙
-    print("TakeOff")
-    drone.sendTakeOff()
-    sleep(0.01)
+    # #1.호버링 3초
+    # print("Hovering")
+    # drone.sendControlWhile(0,0,0,0, 3000)
 
-    #1.호버링 3초
-    print("Hovering")
-    drone.sendControlWhile(0,0,0,0, 3000)
+    # #2. 전진 비행(80cm)
+    # print("Go")
+    # drone.sendControlWhile(0,30,0,0,2000)
 
-    #2. 전진 비행(80cm)
-    print("Go")
-    drone.sendControlWhile(0,30,0,0,2000)
-
-    #3. 고도상승(높이 1.5cm)
-    print("Up")
-    drone.sendControlWhile(0,0,0,20,2000)
+    # #3. 고도상승(높이 1.5cm)
+    # print("Up")
+    # maintainAltitude(drone,1.5)
 
     #4. 정지비행(5sec)
     print("Hovering")
     drone.sendControlWhile(0,0,0,0, 5000)
 
     #5. 8자 원비행(각 원지름 1m)
-    print("8Circle")
-    Circle8(drone, mturtle)
+    print("Circle8")
+    circle(drone, mturtle,True)
+    circle(drone, mturtle,False)
 
     #6. 정지비행(5sec)
     print("Hovering")
@@ -335,26 +296,26 @@ def GO_2( drone, mturtle):
     print("Hovering")
     drone.sendControlWhile(0,0,0,0, 5000)
 
-    #9. 전진 비행(60cm)
-    print("Go")
-    drone.sendControlWhile(0,30,0,0,2000)
+    # #9. 전진 비행(60cm)
+    # print("Go")
+    # drone.sendControlWhile(0,30,0,0,2000)
 
-    #10. 고도 하강(높이 50cm)
-    print("Down")
-    drone.sendControlWhile(0,0,0,-20,2000)
+    # #10. 고도 하강(높이 50cm)
+    # print("Down")
+    # maintainAltitude(drone,0.5)
 
-    #11. 정지 비행(5sec)
-    print("Hovering")
-    drone.sendControlWhile(0,0,0,0, 5000)
+    # #11. 정지 비행(5sec)
+    # print("Hovering")
+    # drone.sendControlWhile(0,0,0,0, 5000)
 
-    #12. 고도 상승(높이 1m)
-    print("Up")
-    drone.sendControlWhile(0,0,0,20,2000)
+    # #12. 고도 상승(높이 1m)
+    # print("Up")
+    # maintainAltitude(drone,1.0)
 
-    #13. 전진 비행(50cm)
-    print("Go")
-    drone.sendControlWhile(0,20,0,0,2000)
+    # #13. 전진 비행(50cm)
+    # print("Go")
+    # drone.sendControlWhile(0,20,0,0,2000)
 
-    #11. 정지 비행(5sec)
-    print("Hovering")
-    drone.sendControlWhile(0,0,0,0, 5000)
+    # #11. 정지 비행(5sec)
+    # print("Hovering")
+    # drone.sendControlWhile(0,0,0,0, 5000)
