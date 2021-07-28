@@ -1,34 +1,48 @@
-from time import sleep                          # 슬립 라이브러리
-from e_drone.drone import *                     # 드론 라이브러리
-from e_drone.protocol import *
-from pynput import keyboard                  # 드론 라이브러리
-from serial.tools.list_ports import comports    # 포트 번호 가져올 수 있는 라이브러리
-from aidrone_function import *                  # 내가 지정한 함수들
-import turtle as t
-import cv2
-import numpy as np
+from turtle import *
+from tkinter import *
+from time import *
+import tkinter.font, tkinter.ttk
+from aidrone_function import *
+from e_drone import *
 
 
+class droneGui(object):
+    def __init__(self,drone):
 
-if __name__ == '__main__':
-    searchPort()
-    for i in range(5,0,-1):
-        print(i)
-        sleep(1)
+        self.window = Tk()
 
-    mturtle = t.Turtle()
-    drone = Drone()
-    drone.open('COM7')  # 컨트롤러와 연결된 포트 번호
+        self.window.geometry("640x400+100+100")
+        self.window.resizable(False, False)
+        
+        var1= StringVar()
+        var2= StringVar()
+        var1.set('0.0')
+        var2.set('0.0')
+        #입력 부분 배치를 위한 프레임 선언##
+        frame=Frame(self.window)
 
-    setTrim(drone)
-    setAltitudeEvent(drone)
-    print("start")
-    takeOff(drone)      # 이륙
+        font1 = tkinter.font.Font(family="맑은 고딕", size=12 , weight = "bold")
+        font2 = tkinter.font.Font(family="맑은 고딕", size=9 , weight = "bold")
+  
+        label3 = Label(self.window, text = "        현재 높이 :     ", font = font1)
+        label4 = Label(self.window, text = "        고도 :     ",  font = font2)
+        label3.pack(side= "left")
+        label4.pack(side="left")
+        label1 = Label(self.window, textvariable = var1, font = font1)
+        label2 = Label(self.window, textvariable = var2,  font = font2)
+        label1.pack(side='left')
+        label2.pack(side='left')
 
-    # 여기 실행코드
-    GO_1(drone, mturtle)
+        # cframe = Frame(self.window, background="white")
+        # canvas = Canvas(master = cframe)
+        # t = RawTurtle(canvas)
 
-    landing(drone)      # 착륙
-    print("stop")
+        # cframe.pack(side="left", fill="both", expand=True)
+        # canvas.pack(side="left", fill="both", expand=True)
 
-    drone.close()
+        #터틀 모양 t.shape("")
+        readAltitude(drone)
+        var1.set(recvHeight())
+        var2.set(recvAltitude())
+
+        self.window.mainloop()
