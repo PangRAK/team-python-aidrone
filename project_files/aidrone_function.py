@@ -3,6 +3,11 @@ from e_drone.drone import *                     # 드론 라이브러리
 from e_drone.protocol import *                  # 드론 라이브러리
 from turtle import *
 
+import cv2
+import mediapipe as mp
+import time
+import math
+
 currentHeight = 0.
 currentYaw = 0.
 
@@ -18,15 +23,14 @@ def searchPort():               # 포트 검색 함수
         print('interface        : ', node.interface)
         print('location         : ', node.location)
         print('name             : ', node.name)
+        
+    return node.name
 
 def eventButton(button):        # 버튼 입력 정보 함수
     print(button.button)
 
 def eventJoystick(joystick):    # 조이스틱 입력 정보 함수
     print(joystick.left.x, joystick.left.y, joystick.right.x, joystick.right.y)
-
-def joystickGoto(joystick):     # 조이스틱 입력 정보 함수
-    goto(joystick.right.x, joystick.right.y)
 
 def eventMotion(motion):        # 모션 정보 함수
     print("eventMotion()")
@@ -45,14 +49,10 @@ def randomLight(drone):         # 랜덤 LED 컨트롤 함수
         sleep(2)
 
 def takeOff(drone):             # 이륙 함수
-    print("TakeOff")
     drone.sendTakeOff()
-    sleep(0.1)
-    drone.sendControlWhile(0,0,0,0,5000)
     sleep(0.1)
 
 def landing(drone):             # 착륙 함수
-    print("Landing")
     drone.sendLanding()
     sleep(0.1)
     drone.sendLanding()
@@ -81,13 +81,14 @@ def setTrim(drone):             # trim을 세팅하는 함수
 
     drone.sendRequest(DeviceType.Drone,DataType.Trim)
     sleep(0.1)
+    drone.sendRequest(DeviceType.Drone,DataType.Trim)
 
 def eventAltitude(altitude):
     print("eventAltitude()")
     # print("- Temperature: {0:.3f}".format(altitude.temperature))
     # print("- Pressure: {0:.3f}".format(altitude.pressure))
     # print("- Altitude : {0:.3f}".format(altitude.altitude))
-    print("- 현재 높이 : {0:.3f}".format(altitude.rangeHeight))
+    print("- Height : {0:.3f}".format(altitude.rangeHeight))
     global currentHeight 
     currentHeight = altitude.rangeHeight
 
@@ -95,16 +96,9 @@ def eventAttitude(attitude):
     print("eventAttitude()")
     # print("- roll: {0:.3f}".format(attitude.roll))
     # print("- pitch: {0:.3f}".format(attitude.pitch))
-    print("- yaw : {0:.3f}".format(attitude.yaw))
+    print("- Yaw : {0:.3f}".format(attitude.yaw))
     global currentYaw 
     currentYaw = attitude.yaw
-
-def setAltitudeEvent(drone):
-    # 이벤트 핸들링 함수 등록
-    drone.setEventHandler(DataType.Altitude, eventAltitude)
-    # Altitude 정보 요청 
-    drone.sendRequest(DeviceType.Drone, DataType.Altitude)
-    sleep(0.1)
 
 def setEvent(drone):
     drone.setEventHandler(DataType.Altitude, eventAltitude)
@@ -185,14 +179,6 @@ def actionPosition(drone, x, y, z, speed, heading, rotation):
     drone.sendControlPosition(x, y, z, speed, heading, rotation)
     sleep(max(result1,result2))
 
-def testAltitude(drone):
-    for i in range(0,10):
-        # Altitude 정보 요청
-        drone.sendRequest(DeviceType.Drone, DataType.Altitude)
-        sleep(1)
-
-    #전진
-
 #사각형
 def square(drone):
     print("Sqaure")
@@ -220,8 +206,7 @@ def zigzag(drone):
     actionPosition(drone,0,0,0,0,45,90)
     actionPosition(drone,0.6,0,0,0.4,0,0)
 
-
-#기능 1 
+# 기능 1 
 def GO_1( drone):
     global currentHeight
 
@@ -274,6 +259,7 @@ def GO_1( drone):
     drone.sendControlWhile(0,0,0,0, 5000)
     sleep(0.1)
 
+# 기능 2
 def GO_2( drone):
     #1.호버링 3초
     print("Hovering")
@@ -333,3 +319,133 @@ def GO_2( drone):
     #11. 정지 비행(5sec)
     print("Hovering")
     drone.sendControlWhile(0,0,0,0, 5000)
+
+# 기능 3
+def GO_3(drone):        
+    cap = cv2.VideoCapture(0)
+
+    mpHands = mp.solutions.hands
+    hands = mpHands.Hands(static_image_mode=False,
+                        max_num_hands=1,
+                        min_detection_confidence=0.5,
+                        min_tracking_confidence=0.5)
+    mpDraw = mp.solutions.drawing_utils
+
+    pTime = 0
+    cTime = 0
+
+    fingers = []
+    fingers.append([])  # 엄지
+    fingers.append([])  # 검지
+    fingers.append([])  # 중지
+    fingers.append([])  # 약지
+    fingers.append([])  # 소지
+    fingers.append([])  # 검지 밑
+    fingers.append([])  # 중지 밑
+    fingers.append([])  # 약지 밑
+    fingers.append([])  # 소지 밑
+    fingers.append([])  # 손바닥 밑
+    distance = [1.0 ,1.0 ,1.0 ,1.0 ,1.0 ,1.0 ,1.0 ,1.0]
+
+    degree_1 = 0.05   # 움직일 거리
+    speed_1 = 1.0     # 속도
+    degree_2 = 5.0   # 움직일 회전각
+    speed_2 = 90.0   # 각속도
+
+    while True:
+        success, img = cap.read()
+        img = cv2.flip(img,1)
+        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        results = hands.process(imgRGB)
+
+        if results.multi_hand_landmarks:
+            handLm = results.multi_hand_landmarks[0]  
+            for id, lm in enumerate(handLm.landmark):
+                h, w, c = img.shape
+                cx, cy = int(lm.x *w), int(lm.y*h)
+                if id ==4:      # 엄지
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[0] = [lm.x, lm.y]
+                elif id ==8:    # 검지
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[1] = [lm.x, lm.y]
+                elif id ==12:   # 중지
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[2] = [lm.x, lm.y]
+                elif id ==16:   # 약지
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[3] = [lm.x, lm.y]
+                elif id ==20:   # 소지
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[4] = [lm.x, lm.y]
+
+                elif id ==5:    # 검지 시작부분
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[5] = [lm.x, lm.y]
+                elif id ==9:    # 중지 시작부분
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[6] = [lm.x, lm.y]
+                elif id ==13:   # 약지 시작부분
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[7] = [lm.x, lm.y]
+                elif id ==17:   # 소지 시작부분
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[8] = [lm.x, lm.y]
+                elif id ==0:    # 손바닥 밑
+                    cv2.circle(img, (cx,cy), 10, (255,0,0), cv2.FILLED)
+                    fingers[9] = [lm.x, lm.y]
+
+            mpDraw.draw_landmarks(img, handLm, mpHands.HAND_CONNECTIONS)
+
+            # 인접 확인
+            distance[0] = math.sqrt((fingers[0][0] - fingers[1][0]) ** 2 + (fingers[0][1] - fingers[1][1]) ** 2)    # 검지와 거리
+            distance[1] = math.sqrt(((fingers[0][0] - fingers[2][0]) ** 2 + (fingers[0][1] - fingers[2][1]) ** 2))  # 중지와 거리
+            distance[2] = math.sqrt(((fingers[0][0] - fingers[3][0]) ** 2 + (fingers[0][1] - fingers[3][1]) ** 2))  # 약지와 거리
+            distance[3] = math.sqrt(((fingers[0][0] - fingers[4][0]) ** 2 + (fingers[0][1] - fingers[4][1]) ** 2))  # 소지와 거리
+
+            distance[4] = math.sqrt(((fingers[0][0] - fingers[5][0]) ** 2 + (fingers[0][1] - fingers[5][1]) ** 2))  # 검지 밑과 거리
+            distance[5] = math.sqrt(((fingers[0][0] - fingers[6][0]) ** 2 + (fingers[0][1] - fingers[6][1]) ** 2))  # 중지 밑과 거리
+            distance[6] = math.sqrt(((fingers[0][0] - fingers[7][0]) ** 2 + (fingers[0][1] - fingers[7][1]) ** 2))  # 약지 밑과 거리
+            distance[7] = math.sqrt(((fingers[0][0] - fingers[8][0]) ** 2 + (fingers[0][1] - fingers[8][1]) ** 2))  # 소지 밑과 거리
+
+            if distance[3] < 0.07:      # Yaw Down
+                print('4')
+                drone.sendControlPosition(0,0,0,0,-degree_2,speed_2)
+            elif distance[2] < 0.07:    # Yaw Up
+                print('3')
+                drone.sendControlPosition(0,0,0,0,degree_2,speed_2)
+            elif distance[1] < 0.07:    # Throttle Down
+                print('2')
+                drone.sendControlPosition(0,0,-degree_1,speed_1,0,0)
+            elif distance[0] < 0.07:    # Throttle Up
+                print('1')
+                drone.sendControlPosition(0,0,degree_1,speed_1,0,0)
+                
+            elif distance[7] < 0.03:    # Roll Up
+                print('8')
+                drone.sendControlPosition(0,degree_1,0,speed_1,0,0)
+            elif distance[6] < 0.03:    # Roll Down
+                print('7')
+                drone.sendControlPosition(0,-degree_1,0,speed_1,0,0)
+            elif distance[5] < 0.03:    # Pitch Down
+                print('6')
+                drone.sendControlPosition(-degree_1,0,0,speed_1,0,0)
+            elif distance[4] < 0.03:    # Pitch Up
+                print('5')
+                drone.sendControlPosition(degree_1,0,0,speed_1,0,0)
+
+            elif fingers[0][0] > fingers[4][0]: # Lending (손을 아래로 뒤집을 경우)
+                print('Circle8')
+            elif fingers[9][1] < fingers[2][1]: # Lending (손을 아래로 뒤집을 경우)
+                break        
+
+            sleep(0.01)
+
+        cTime = time.time()
+        fps = 1/(cTime-pTime)
+        pTime = cTime
+
+        cv2.putText(img,str(int(fps)), (10,70), cv2.FONT_HERSHEY_PLAIN, 3, (255,0,255), 3)
+
+        cv2.imshow("Image", img)
+        cv2.waitKey(1)
