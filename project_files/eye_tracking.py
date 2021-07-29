@@ -31,15 +31,7 @@ while True:
             cv2.drawContours(roi, [cnt], -1, (0,0,255),2)
             print((x2+int(w2/2)) / rows, '  ', (y2+int(h2/2)) / cols)
             break
-
-        # cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0), 2)     
-        # for (x,y,w,h) in eyes:
-        #     # Save the captured image into the datasets folder
-        #     cv2.imwrite("dataset/User." + str(face_id) + '.' + str(count) + ".jpg", gray[y:y+h,x:x+w])
-        #     cv2.imshow('image', img)
         
-        # cv2.imshow("Frame", frame)
-        # cv2.imshow("Roi", roi)
         cv2.imshow("gray roi", gray_roi)
         cv2.imshow("Threshold", threshold)
         cv2.imshow("Roi", roi)

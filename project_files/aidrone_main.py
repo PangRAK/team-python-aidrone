@@ -9,21 +9,24 @@ import test
 
 if __name__ == '__main__':
     searchPort()
-    for i in range(5,0,-1):
+    for i in range(3,0,-1):
         print(i)
         sleep(1)
 
     # mturtle = t.Turtle()
     drone = Drone()
-    drone.open('COM7')  # 컨트롤러와 연결된 포트 번호
+    drone.open('COM7')  # 컨트롤러와 연결된 포.트 번호
     # test.droneGui(drone)
     setTrim(drone)
-    setAltitudeEvent(drone)
+    setEvent(drone)
     print("start")
     takeOff(drone)      # 이륙
 
     # 여기 실행코드
-    GO_1(drone)
+    GO_2(drone)
+    # while True:
+    #     drone.sendRequest(DeviceType.Drone, DataType.Attitude)
+    #     sleep(1)
 
     landing(drone)      # 착륙
     print("stop")
