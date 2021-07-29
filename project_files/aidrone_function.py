@@ -1,7 +1,6 @@
 from time import sleep                          # 슬립 라이브러리
 from e_drone.drone import *                     # 드론 라이브러리
 from e_drone.protocol import *                  # 드론 라이브러리
-from pynput.keyboard import Listener, Key       # 키보드 입력 감지 라이브러리
 from turtle import *
 
 currentHeight = 0.
