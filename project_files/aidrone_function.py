@@ -51,6 +51,8 @@ def randomLight(drone):         # 랜덤 LED 컨트롤 함수
 def takeOff(drone):             # 이륙 함수
     drone.sendTakeOff()
     sleep(0.1)
+    drone.sendTakeOff()
+    sleep(0.1)
 
 def landing(drone):             # 착륙 함수
     drone.sendLanding()
@@ -280,7 +282,7 @@ def GO_2( drone):
     sleep(0.1)
 
     #5. 8자 원비행(각 원지름 1m)
-    print("8Circle")
+    print("Circle8")
     actionPosition(drone,3.14,0,0,0.785,360,90)
     actionPosition(drone,3.14,0,0,0.785,-360,90)
 
@@ -347,10 +349,10 @@ def GO_3(drone):
     fingers.append([])  # 손바닥 밑
     distance = [1.0 ,1.0 ,1.0 ,1.0 ,1.0 ,1.0 ,1.0 ,1.0]
 
-    degree_1 = 0.05   # 움직일 거리
-    speed_1 = 1.0     # 속도
-    degree_2 = 5.0   # 움직일 회전각
-    speed_2 = 90.0   # 각속도
+    degree_1 = 0.05     # 움직일 거리(float)
+    speed_1 = 0.5       # 속도(float)
+    degree_2 = 5        # 움직일 회전각(int)
+    speed_2 = 45        # 각속도(int)
 
     while True:
         success, img = cap.read()
@@ -436,6 +438,8 @@ def GO_3(drone):
 
             elif fingers[0][0] > fingers[4][0]: # Lending (손을 아래로 뒤집을 경우)
                 print('Circle8')
+                actionPosition(drone,3.14,0,0,0.785,360,90)
+                actionPosition(drone,3.14,0,0,0.785,-360,90)
             elif fingers[9][1] < fingers[2][1]: # Lending (손을 아래로 뒤집을 경우)
                 break        
 
