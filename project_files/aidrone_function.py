@@ -8,9 +8,14 @@ import mediapipe as mp
 import time
 import math
 
+currentAltitude =0.
 currentHeight = 0.
 currentYaw = 0.
 
+def getHeight():
+    return currentHeight
+def getAltitude():
+    return currentAltitude
 def searchPort():               # 포트 검색 함수    
     nodes = comports()
     count = 0
@@ -93,6 +98,8 @@ def eventAltitude(altitude):
     print("- Height : {0:.3f}".format(altitude.rangeHeight))
     global currentHeight 
     currentHeight = altitude.rangeHeight
+    global currentAltitude
+    currentAltitude = altitude.altitude
 
 def eventAttitude(attitude):
     print("eventAttitude()")
@@ -181,6 +188,11 @@ def actionPosition(drone, x, y, z, speed, heading, rotation):
     drone.sendControlPosition(x, y, z, speed, heading, rotation)
     sleep(max(result1,result2))
 
+    drone.sendRequest(DeviceType.Drone, DataType.Altitude)
+    sleep(0.1)
+    drone.sendRequest(DeviceType.Drone, DataType.Altitude)
+
+
 #사각형
 def square(drone):
     print("Sqaure")
@@ -208,10 +220,39 @@ def zigzag(drone):
     actionPosition(drone,0,0,0,0,45,90)
     actionPosition(drone,0.6,0,0,0.4,0,0)
 
+
+def draw(tt,  x, y, z, speed, heading, rotation ):
+    tt.pensize(3)
+    tt.up()
+    tt.goto(0,-200)
+    tt.down()
+    tt.speed(10)
+    if x !=0 and heading == 360:
+        tt.circle(x*10)
+    else:
+        
+        if heading >0:
+            tt.lf(heading)
+        elif heading <0:
+            tt.rt(heading)
+        elif x != 0:
+            tt.fw(x*10)
+        
+
+            
+
+    
+
 # 기능 1 
 def GO_1( drone):
     global currentHeight
 
+    print("TakeOff") 
+    # takeOff(drone)          # 이륙
+    drone.sendControlWhile(0,0,0,0,3000)
+    sleep(0.1)
+
+    #draw(tt)
     #1.호버링 3초
     print("Hovering")
     drone.sendControlWhile(0,0,0,0, 3000)
@@ -261,8 +302,17 @@ def GO_1( drone):
     drone.sendControlWhile(0,0,0,0, 5000)
     sleep(0.1)
 
+    print("Landing")
+    landing(drone)      # 착륙
+
 # 기능 2
 def GO_2( drone):
+
+    print("TakeOff") 
+    # takeOff(drone)          # 이륙
+    drone.sendControlWhile(0,0,0,0,3000)
+    sleep(0.1)
+
     #1.호버링 3초
     print("Hovering")
     drone.sendControlWhile(0,0,0,0, 3000)
@@ -322,6 +372,9 @@ def GO_2( drone):
     print("Hovering")
     drone.sendControlWhile(0,0,0,0, 5000)
 
+    print("Landing")
+    landing(drone)      # 착륙
+
 # 기능 3
 def GO_3(drone):        
     cap = cv2.VideoCapture(0)
@@ -353,6 +406,11 @@ def GO_3(drone):
     speed_1 = 0.5       # 속도(float)
     degree_2 = 5        # 움직일 회전각(int)
     speed_2 = 45        # 각속도(int)
+
+    print("TakeOff") 
+    # takeOff(drone)          # 이륙
+    drone.sendControlWhile(0,0,0,0,3000)
+    sleep(0.1)
 
     while True:
         success, img = cap.read()
@@ -442,8 +500,9 @@ def GO_3(drone):
                 actionPosition(drone,3.14,0,0,0.785,-360,90)
             elif fingers[9][1] < fingers[2][1]: # Lending (손을 아래로 뒤집을 경우)
                 break        
-
+            drone.sendRequest(DeviceType.Drone, DataType.Altitude)
             sleep(0.01)
+            drone.sendRequest(DeviceType.Drone, DataType.Altitude)
 
         cTime = time.time()
         fps = 1/(cTime-pTime)
@@ -453,3 +512,6 @@ def GO_3(drone):
 
         cv2.imshow("Image", img)
         cv2.waitKey(1)
+
+    print("Landing")
+    landing(drone)      # 착륙
