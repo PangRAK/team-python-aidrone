@@ -119,9 +119,9 @@ def maintainHeight(drone, goalHeight):
         sleep(0.1)
         drone.sendRequest(DeviceType.Drone, DataType.Altitude)
         print(currentHeight)
-        if goalHeight - 0.1 > currentHeight:
+        if goalHeight + 0.01 > currentHeight:
             drone.sendControlWhile(0,0,0,20,10)
-        elif goalHeight + 0.1 < currentHeight:
+        elif goalHeight + 0.05 < currentHeight:
             drone.sendControlWhile(0,0,0,-20,10)
         else:
             break
@@ -170,7 +170,7 @@ def maintainYaw(drone, changeYaw):
     drone.sendControlWhile(0,0,0,0,1)
     sleep(0.1)
 
-def actionPosition(drone, x, y, z, speed, heading, rotation):
+def actionPosition(tt,drone, x, y, z, speed, heading, rotation):
     result1, result2 = 0,0
     result1 += abs(x/(speed+0.01))
     result1 += abs(y/(speed+0.01))
@@ -186,7 +186,9 @@ def actionPosition(drone, x, y, z, speed, heading, rotation):
     drone.sendControlPosition(x, y, z, speed, heading, rotation)
     sleep(0.01)
     drone.sendControlPosition(x, y, z, speed, heading, rotation)
-    sleep(max(result1,result2))
+    time = max(result1,result2)
+    draw(tt,time,x, y, z,heading)
+    sleep(time)
 
     drone.sendRequest(DeviceType.Drone, DataType.Altitude)
     sleep(0.1)
@@ -194,49 +196,60 @@ def actionPosition(drone, x, y, z, speed, heading, rotation):
 
 
 #사각형
-def square(drone):
+def square(tt,drone):
     print("Sqaure")
     print('')
     for i in range(0,4):
         print('각도 전환')
-        actionPosition(drone,0,0,0,0,-90,45)
+        actionPosition(tt,drone,0,0,0,0,-90,45)
         #정지
         drone.sendControlWhile(0,0,0,0,1000)
         sleep(0.1)
         print('사각형 전진')
-        actionPosition(drone,1,0,0,0.5,0,0)
+        actionPosition(tt,drone,1,0,0,0.5,0,0)
 
 #zigzag
-def zigzag(drone):
-    actionPosition(drone,0,0,0,0,-45,90)
-    actionPosition(drone,0.6,0,0,0.4,0,0)
+def zigzag(tt,drone):
+    actionPosition(tt,drone,0,0,0,0,-45,90)
+    actionPosition(tt,drone,0.6,0,0,0.4,0,0)
     
-    actionPosition(drone,0,0,0,0,45,90)
-    actionPosition(drone,0.6,0,0,0.4,0,0)
+    actionPosition(tt,drone,0,0,0,0,45,90)
+    actionPosition(tt,drone,0.6,0,0,0.4,0,0)
     
-    actionPosition(drone,0,0,0,0,-45,90)
-    actionPosition(drone,0.6,0,0,0.4,0,0)
+    actionPosition(tt,drone,0,0,0,0,-45,90)
+    actionPosition(tt,drone,0.6,0,0,0.4,0,0)
     
-    actionPosition(drone,0,0,0,0,45,90)
-    actionPosition(drone,0.6,0,0,0.4,0,0)
+    actionPosition(tt,drone,0,0,0,0,45,90)
+    actionPosition(tt,drone,0.6,0,0,0.4,0,0)
 
 
-def draw(tt,  x, y, z, speed, heading, rotation ):
-    tt.pensize(3)
-    tt.up()
-    tt.goto(0,-200)
-    tt.down()
-    tt.speed(10)
-    if x !=0 and heading == 360:
-        tt.circle(x*10)
+def draw(tt, time, x, y, z,heading):
+    
+    tt.speed(0)
+    if x !=0 and (heading == 360 or heading == -360):
+        if heading == 360:
+            tt.circle(x*20)
+        elif heading == -360:
+            tt.circle(-x*20)
+
     else:
         
         if heading >0:
-            tt.lf(heading)
+            tt.lt(abs(heading))
         elif heading <0:
-            tt.rt(heading)
-        elif x != 0:
-            tt.fw(x*10)
+            tt.rt(abs(heading))
+        elif x > 0:
+            tt.fd(x*100)
+        elif x < 0:
+            tt.bk(abs(x*100))
+        elif y > 0:
+            tt.lt(90)
+            tt.fd(y*100)
+            tt.rt(90)
+        elif y < 0:
+            tt.rt(90)
+            tt.fd(y)
+            tt.lt(90)
         
 
             
@@ -244,15 +257,20 @@ def draw(tt,  x, y, z, speed, heading, rotation ):
     
 
 # 기능 1 
-def GO_1( drone):
+def GO_1( drone, tt):
     global currentHeight
+    tt.clear()
+    tt.pensize(3)
+    tt.setheading(90)
+    tt.penup()
+    tt.goto(0,-150)
+    tt.pendown()
 
-    print("TakeOff") 
-    # takeOff(drone)          # 이륙
+    print("takeOFf") 
+    takeOff(drone)          # 이륙
     drone.sendControlWhile(0,0,0,0,3000)
     sleep(0.1)
 
-    #draw(tt)
     #1.호버링 3초
     print("Hovering")
     drone.sendControlWhile(0,0,0,0, 3000)
@@ -260,7 +278,7 @@ def GO_1( drone):
 
     #2. 전진 비행(80cm)
     print("Go")
-    actionPosition(drone,0.8,0,0,0.5,0,0)
+    actionPosition(tt,drone,0.8,0,0,0.5,0,0)
 
     #3. 고도상승(높이 1.5cm)
     print("Up")
@@ -272,7 +290,7 @@ def GO_1( drone):
     sleep(0.1)
     
     #4. 사각형 패턴비행(90도 회전, 정지 1sec, 지름 1m 씩)
-    square(drone)
+    square(tt,drone)
 
     #5. 정지비행(5sec)
     print("Hovering")
@@ -281,7 +299,7 @@ def GO_1( drone):
 
     #6. 원 패턴 비행(지름 1m)    
     print("Circle")
-    actionPosition(drone,3.14,0,0,0.785,360,90)
+    actionPosition(tt,drone,3.14,0,0,0.785,360,90)
 
     #7. 정지비행(5sec)
     print("Hovering")
@@ -290,7 +308,7 @@ def GO_1( drone):
 
     #8. 후진 비행(1m)
     print("Back")
-    actionPosition(drone,-1,0,0,0.5,0,0)
+    actionPosition(tt,drone,-1,0,0,0.5,0,0)
     sleep(0.1)
 
     #9. 고도 하강(1m 남김)
@@ -306,10 +324,16 @@ def GO_1( drone):
     landing(drone)      # 착륙
 
 # 기능 2
-def GO_2( drone):
+def GO_2( drone, tt):
+    tt.clear()
+    tt.pensize(3)
+    tt.setheading(90)
+    tt.penup()
+    tt.goto(0,-150)
+    tt.pendown()
 
     print("TakeOff") 
-    # takeOff(drone)          # 이륙
+    takeOff(drone)          # 이륙
     drone.sendControlWhile(0,0,0,0,3000)
     sleep(0.1)
 
@@ -320,7 +344,7 @@ def GO_2( drone):
 
     #2. 전진 비행(80cm)
     print("Go")
-    actionPosition(drone,0.8,0,0,0.5,0,0)
+    actionPosition(tt,drone,0.8,0,0,0.5,0,0)
 
     #3. 고도상승(높이 1.5cm)
     print("Up")
@@ -333,8 +357,8 @@ def GO_2( drone):
 
     #5. 8자 원비행(각 원지름 1m)
     print("Circle8")
-    actionPosition(drone,3.14,0,0,0.785,360,90)
-    actionPosition(drone,3.14,0,0,0.785,-360,90)
+    actionPosition(tt,drone,3.14,0,0,0.785,360,90)
+    actionPosition(tt,drone,3.14,0,0,0.785,-360,90)
 
     #6. 정지비행(5sec)
     print("Hovering")
@@ -342,7 +366,7 @@ def GO_2( drone):
 
     #7. 지그재그 비행 4회(45도 방향으로 0.5sec, 전진 1.5sec)
     print("ZigZag")
-    zigzag(drone)
+    zigzag(tt,drone)
 
     #8. 정지비행(5sec)
     print("Hovering")
@@ -350,7 +374,7 @@ def GO_2( drone):
 
     #9. 전진 비행(60cm)
     print("Go")
-    actionPosition(drone,0.6,0,0,0.6,0,0)
+    actionPosition(tt,drone,0.6,0,0,0.6,0,0)
 
     #10. 고도 하강(높이 50cm)
     print("Down")
@@ -366,7 +390,7 @@ def GO_2( drone):
 
     #13. 전진 비행(50cm)
     print("Go")
-    actionPosition(drone,0.5,0,0,0.5,0,0)
+    actionPosition(tt,drone,0.5,0,0,0.5,0,0)
 
     #11. 정지 비행(5sec)
     print("Hovering")
@@ -376,7 +400,14 @@ def GO_2( drone):
     landing(drone)      # 착륙
 
 # 기능 3
-def GO_3(drone):        
+def GO_3(drone,tt):    
+    tt.clear()
+    tt.pensize(3)
+    tt.setheading(90)
+    tt.penup()
+    tt.goto(0,-150)
+    tt.pendown()
+
     cap = cv2.VideoCapture(0)
 
     mpHands = mp.solutions.hands
@@ -403,12 +434,12 @@ def GO_3(drone):
     distance = [1.0 ,1.0 ,1.0 ,1.0 ,1.0 ,1.0 ,1.0 ,1.0]
 
     degree_1 = 0.05     # 움직일 거리(float)
-    speed_1 = 0.5       # 속도(float)
+    speed_1 = 1.0       # 속도(float)
     degree_2 = 5        # 움직일 회전각(int)
-    speed_2 = 45        # 각속도(int)
+    speed_2 = 90        # 각속도(int)
 
     print("TakeOff") 
-    # takeOff(drone)          # 이륙
+    takeOff(drone)          # 이륙
     drone.sendControlWhile(0,0,0,0,3000)
     sleep(0.1)
 
@@ -471,33 +502,40 @@ def GO_3(drone):
             if distance[3] < 0.07:      # Yaw Down
                 print('4')
                 drone.sendControlPosition(0,0,0,0,-degree_2,speed_2)
+                draw(tt, 0,0,0,0,-degree_2)
             elif distance[2] < 0.07:    # Yaw Up
                 print('3')
                 drone.sendControlPosition(0,0,0,0,degree_2,speed_2)
+                draw(tt, 0, 0,0,0,degree_2)
             elif distance[1] < 0.07:    # Throttle Down
                 print('2')
                 drone.sendControlPosition(0,0,-degree_1,speed_1,0,0)
+                draw(tt, 0,0,0,-degree_1,0)
             elif distance[0] < 0.07:    # Throttle Up
                 print('1')
                 drone.sendControlPosition(0,0,degree_1,speed_1,0,0)
-                
+                draw(tt, 0,0,0,degree_1,0)
             elif distance[7] < 0.03:    # Roll Up
                 print('8')
                 drone.sendControlPosition(0,degree_1,0,speed_1,0,0)
+                draw(tt, 0,0,degree_1,0,0)
             elif distance[6] < 0.03:    # Roll Down
                 print('7')
                 drone.sendControlPosition(0,-degree_1,0,speed_1,0,0)
+                draw(tt, 0,0,-degree_1,0,0)
             elif distance[5] < 0.03:    # Pitch Down
                 print('6')
                 drone.sendControlPosition(-degree_1,0,0,speed_1,0,0)
+                draw(tt, 0,-degree_1,0,0,0)
             elif distance[4] < 0.03:    # Pitch Up
                 print('5')
                 drone.sendControlPosition(degree_1,0,0,speed_1,0,0)
+                draw(tt, 0,degree_1,0,0,0)
 
             elif fingers[0][0] > fingers[4][0]: # Lending (손을 아래로 뒤집을 경우)
                 print('Circle8')
-                actionPosition(drone,3.14,0,0,0.785,360,90)
-                actionPosition(drone,3.14,0,0,0.785,-360,90)
+                actionPosition(tt,drone,3.14,0,0,0.785,360,90)
+                actionPosition(tt,drone,3.14,0,0,0.785,-360,90)
             elif fingers[9][1] < fingers[2][1]: # Lending (손을 아래로 뒤집을 경우)
                 break        
             drone.sendRequest(DeviceType.Drone, DataType.Altitude)

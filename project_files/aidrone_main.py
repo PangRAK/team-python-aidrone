@@ -25,25 +25,22 @@ def updateTemp():
 
 
 def go1Click(drone):
-    t = threading.Thread(target = GO_1, args =(drone,))
+    t = threading.Thread(target = GO_1, args =(drone,tt))
     t.start()
 
 
 def go2Click(drone):
-    t = threading.Thread(target = GO_2, args =(drone,))
+    t = threading.Thread(target = GO_2, args =(drone,tt))
     t.start()
 
 
 def go3Click(drone):
-    t = threading.Thread(target = GO_3, args =(drone,))
+    t = threading.Thread(target = GO_3, args =(drone,tt))
     t.start()
 
 
 if __name__ == '__main__':
     portName = searchPort()
-    for i in range(3,0,-1):
-        print(i)
-        sleep(1)
 
     drone = Drone()
     drone.open("COM7")    # 컨트롤러와 연결된 포트 번호
@@ -72,7 +69,7 @@ if __name__ == '__main__':
     canvas = tkinter.Canvas(master = cframe,width = 850, height= 450)
     p = t.TurtleScreen(canvas)
     cframe.place(x = 20, y = 100)
-    canvas.pack()
+    canvas.pack()      
     #거북이 객체
     tt = t.RawTurtle(p)
     # img = ImageTk.PhotoImage(Image.open('drone_img.png'))
